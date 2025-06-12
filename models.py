@@ -23,6 +23,9 @@ class Customer(db.Model):
     age = db.Column(db.Integer, nullable=True)
     created_at = db.Column(db.DateTime(), default=datetime.now())
 
+    def __repr__(self):
+        return f"<{self.first_name} {self.last_name}>"
+
 
 # products
 # orders

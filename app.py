@@ -1,4 +1,4 @@
-from flask import Flask, make_response
+from flask import Flask, make_response, request
 from flask_migrate import Migrate
 
 from models import db, Customer
@@ -33,6 +33,52 @@ db.init_app(app=app)
 # RETRIEVE INFO ABOUT A CUSTOMER
 # UPDATE A CUSTOMER
 # DELETE A CUSTOMER
+@app.post("/customers")
+def add_customer():
+    # get the data from the request
+    # verify that the data you are getting from the user is the right format
+    # save that data in the database
+
+    try:
+        data = request.get_json()
+
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
+        email = data.get("email")
+        phone = data.get("phone")
+        gender = data.get("gender")
+        age = data.get("age")
+
+        # create an isntance of the Customer class
+        customer = Customer(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            gender=gender,
+            age=age,
+        )
+
+        # add the details to out database
+        db.session.add(customer)
+        db.session.commit()
+
+        response = {
+            "code": 201,
+            "message": "Customer account created successfully",
+        }
+
+        return make_response(response, 201)
+
+    except Exception as e:
+        response = {"code": 400, "message": "An error occured", "error": f"{str(e)}"}
+
+        return make_response(response, 400)
+
+
+# perfom patch operations
+# partial updates -> write the logic to account for this
+# delete operations
 
 
 @app.get("/customers")
@@ -41,31 +87,23 @@ def get_all_customers():
     # return the data in a format that other applications can understand
     # customers = db.session.query(Customer).all()
     customers = Customer.query.all()
-    customer_list = [
-        {
-            "id": customer.id,
-            "first_name": customer.first_name,
-            "last_name": customer.last_name,
-            "email": customer.email,
-            "phone": customer.phone,
-            "gender": customer.gender,
-            "age": customer.age,
-        }
-        for customer in customers
-    ]
+    # customer_list = [customer.to_dict() for customer in customers]
     # the other way
     cust_list = []
     for customer in customers:
-        cust = {
-            "id": customer.id,
-            "first_name": customer.first_name,
-            "last_name": customer.last_name,
-            "email": customer.email,
-            "phone": customer.phone,
-            "gender": customer.gender,
-            "age": customer.age,
-        }
-        cust_list.append(cust)
+        # cust = {
+        #     "id": customer.id,
+        #     "first_name": customer.first_name,
+        #     "last_name": customer.last_name,
+        #     "email": customer.email,
+        #     "phone": customer.phone,
+        #     "gender": customer.gender,
+        #     "age": customer.age,
+        # }
+        # cust_list.append(
+        #     customer.to_dict(only=("first_name", "gender", "last_name", "email"))
+        # )
+        cust_list.append(customer.to_dict(rules=("-created_at", "-phone", "-id")))
 
     return make_response(cust_list, 200)
 
@@ -84,16 +122,16 @@ def get_one_customer(id):
     customer = Customer.query.filter_by(id=id).first()
 
     if customer:
-        customer_dict = {
-            "id": customer.id,
-            "first_name": customer.first_name,
-            "last_name": customer.last_name,
-            "email": customer.email,
-            "phone": customer.phone,
-            "gender": customer.gender,
-            "age": customer.age,
-        }
-        return make_response(customer_dict, 200)
+        # customer_dict = {
+        #     "id": customer.id,
+        #     "first_name": customer.first_name,
+        #     "last_name": customer.last_name,
+        #     "email": customer.email,
+        #     "phone": customer.phone,
+        #     "gender": customer.gender,
+        #     "age": customer.age,
+        # }
+        return make_response(customer.to_dict(), 200)
     else:
         return make_response({"status": 404, "message": "No customer found"}, 404)
 

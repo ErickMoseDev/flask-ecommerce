@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_restful import Resource, Api
 from flask_cors import CORS
 
-from models import db, Customer
+from models import db, Customer, Product
 
 # heart of the flask application
 app = Flask(__name__)
@@ -78,6 +78,7 @@ class Customers(Resource):
                 "message": "An error occured",
                 "error": f"{str(ve)}",
             }
+            return make_response(response, 400)
 
         except Exception as e:
             response = {
@@ -85,8 +86,7 @@ class Customers(Resource):
                 "message": "An error occured",
                 "error": f"{str(e)}",
             }
-
-        return make_response(response, 400)
+            return make_response(response, 500)
 
 
 class CustomerById(Resource):
@@ -112,5 +112,56 @@ class CustomerById(Resource):
     #     pass
 
 
+class Products(Resource):
+    def get(self):
+        products = Product.query.all()
+
+        product_list = [product.to_dict() for product in products]
+
+        return make_response(product_list, 200)
+
+    def post(self):
+        # get the data from the client request
+        try:
+            data = request.get_json()
+
+            name = data.get("name")
+            desc = data.get("description")
+            cat = data.get("category")
+            price = data.get("price")
+            quantity = data.get("quantity")
+            image = data.get("image")
+            rating = data.get("rating")
+
+            product = Product(
+                image=image,
+                name=name,
+                description=desc,
+                category=cat,
+                price=price,
+                quantity=quantity,
+                rating=rating,
+            )
+
+            db.session.add(product)
+            db.session.commit()
+
+            response = {
+                "status": "successful",
+                "code": 201,
+                "message": "product added successfully",
+            }
+
+            return make_response(response, 201)
+        except Exception as e:
+            response = {
+                "code": 500,
+                "message": "An error occured",
+                "error": f"{str(e)}",
+            }
+            return make_response(response, 500)
+
+
 api.add_resource(Customers, "/customers")
 api.add_resource(CustomerById, "/customers/<int:id>")
+api.add_resource(Products, "/products")

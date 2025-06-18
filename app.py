@@ -1,5 +1,6 @@
 from flask import Flask, make_response, request
 from flask_migrate import Migrate
+from werkzeug.exceptions import BadRequest
 
 from models import db, Customer
 
@@ -136,5 +137,48 @@ def get_one_customer(id):
         return make_response({"status": 404, "message": "No customer found"}, 404)
 
 
-# post
-# serialization to_dict()
+# perform patch request
+@app.patch("/customers/<int:id>")
+def update_customer(id):
+    try:
+        customer = Customer.query.get(id)
+
+        if customer:
+            # retrieve the data sent from the client
+            data = request.get_json()
+
+            for attr in data:
+                setattr(customer, attr, request.get_json().get(attr))
+
+            db.session.add(customer)
+            db.session.commit()
+
+            resp = {
+                "status": "Successful",
+                "message": "Customer updated successfully",
+                "code": 200,
+            }
+
+            return make_response(resp, 200)
+        else:
+            resp = {
+                "status": "Successful",
+                "message": f"No customer found with id {id}",
+                "code": 404,
+            }
+
+            return make_response(resp, 404)
+    except BadRequest as b:
+        resp = {
+            "error": f"Error: {str(b)}",
+            "message": "Invalid request",
+            "code": 400,
+        }
+        return make_response(resp, 400)
+    except Exception as e:
+        resp = {
+            "error": f"Error: {str(e)}",
+            "message": "Internal server error",
+            "code": 500,
+        }
+        return make_response(resp, 500)

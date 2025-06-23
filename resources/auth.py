@@ -28,7 +28,7 @@ class Register(Resource):
             # validation checks - manual way
             if not f_name or not f_name.strip():
                 errors.append("First name is required")
-            if not l_name or not f_name.strip():
+            if not l_name or not l_name.strip():
                 errors.append("Last name is required")
             if not mail or not mail.strip():
                 errors.append("Email is required")

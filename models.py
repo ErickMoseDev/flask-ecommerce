@@ -1,5 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
+from sqlalchemy.orm import validates
+import re
 
 from datetime import datetime
 from sqlalchemy_serializer import SerializerMixin
@@ -44,6 +46,26 @@ class Customer(db.Model, SerializerMixin):
 
     def __repr__(self):
         return f"<{self.first_name} {self.last_name}>"
+
+    # validations
+    @validates("first_name", "last_name")
+    def validate_name(self, key, value):
+        if not value.isalpha():
+            raise ValueError(f"{key} must have letters.")
+        return value
+
+    # emails
+    @validates("email")
+    def validate_email(self, key, value):
+        # normalize the email
+        normalized = value.strip().lower()
+        # regex
+        regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+        regII = r"[A-Za-z][A-Za-z0-9]*(\.[A-Za-z0-9]+)*@[A-Za-z0-9]+\.[a-z]{2,}"
+        if not re.match(regII, normalized):
+            raise ValueError("Email is not valid")
+
+        return normalized
 
 
 class Product(db.Model, SerializerMixin):
@@ -105,7 +127,13 @@ class OrderItem(db.Model, SerializerMixin):
     order = db.relationship("Order", back_populates="order_items")
 
 
-# products
-# orders
-# order_items
-# serialization with relationships
+class User(db.Model, SerializerMixin):
+    __tablename__ = "users"
+
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String, nullable=False)
+    last_name = db.Column(db.String, nullable=False)
+    email = db.Column(db.String(100), nullable=False, unique=True)
+    phone = db.Column(db.String, nullable=False, unique=True)
+    password = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime(), default=datetime.now)

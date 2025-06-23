@@ -1,10 +1,12 @@
 from flask import make_response, request
 from flask_restful import Resource
+from flask_jwt_extended import jwt_required
 
 from models import db, Customer
 
 
 class Customers(Resource):
+    @jwt_required()
     def get(self):
         # get the data from the db
         customers = Customer.query.all()
@@ -67,6 +69,7 @@ class Customers(Resource):
 
 
 class CustomerById(Resource):
+    @jwt_required()
     def get(self, id):
         # customer = Customer.query.get(id)
         customer = Customer.query.filter_by(id=id).first()
@@ -79,9 +82,11 @@ class CustomerById(Resource):
                 404,
             )
 
+    @jwt_required()
     def patch(self, id):
         pass
 
+    @jwt_required()
     def delete(self, id):
         pass
 

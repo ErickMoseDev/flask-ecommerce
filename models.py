@@ -60,7 +60,7 @@ class Customer(db.Model, SerializerMixin):
         # normalize the email
         normalized = value.strip().lower()
         # regex
-        regex = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+
         regII = r"[A-Za-z][A-Za-z0-9]*(\.[A-Za-z0-9]+)*@[A-Za-z0-9]+\.[a-z]{2,}"
         if not re.match(regII, normalized):
             raise ValueError("Email is not valid")
@@ -129,6 +129,7 @@ class OrderItem(db.Model, SerializerMixin):
 
 class User(db.Model, SerializerMixin):
     __tablename__ = "users"
+    serialize_rules = ("-password",)
 
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String, nullable=False)

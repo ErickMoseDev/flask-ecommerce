@@ -1,5 +1,6 @@
 from flask import make_response, request
 from flask_restful import Resource
+from flask_jwt_extended import jwt_required
 
 from models import db, Product
 
@@ -12,6 +13,7 @@ class Products(Resource):
 
         return make_response(product_list, 200)
 
+    @jwt_required()
     def post(self):
         # get the data from the client request
         try:
